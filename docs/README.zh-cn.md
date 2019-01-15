@@ -8,7 +8,7 @@ Simter kotlin 扩展。
 
 1. 使用类似 `'var {propertyName}: {valueType}? by holder'` 的形式在动态 Bean 内定义动态属性。
 2. 要定义一个动态属性，该子类的属性必需定义为可变（var）、可空（T?） 和没有默认值。
-3. 通过属性 `data` 可以获取到所有已经设置过的动态属性的名称和值，默认情况下，此属性是一个空的 `Map'。
+3. 通过属性 `data` 可以获取到所有已经设置过的动态属性的名称和值，默认情况下，此属性是一个空的 `Map`。
 
 ```kotlin
 class MyBean : DynamicBean() {
