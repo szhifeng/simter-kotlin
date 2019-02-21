@@ -1,0 +1,35 @@
+spring.main.banner-mode: 'off'
+
+# simple authorization config
+module.authorization.x:
+  operations:
+    read:
+      roles: ['R1', 'R2']
+      strategy: 'or'
+    "[create,update]":           #   create or update
+      roles: ['R1', 'R2']
+      strategy: 'and'
+    delete:
+      roles: ['R1', 'R2']
+
+# authorization config for multiple sub-modules, 'default' for missing config modules
+module.authorization.y:
+  operations:
+    default:
+      read:
+        roles: ['R1', 'R2']
+        strategy: 'or'
+      "[create,update]":
+        roles: ['R1', 'R2']
+        strategy: 'and'
+      delete:
+        roles: ['R1', 'R2']
+    m1:
+      read:
+        roles: ['R1', 'R2']
+        strategy: 'or'
+      "[create,update]":
+        roles: ['R1', 'R2']
+        strategy: 'and'
+      delete:
+        roles: ['R1', 'R2']
