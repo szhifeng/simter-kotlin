@@ -196,5 +196,19 @@ open class DynamicBean {
         caseType = caseType
       )
     }
+
+    /**
+     * Copy public property from source to target.
+     *
+     * Only copy writable property of [target] from [source].
+     *
+     * Return [target] for chained invoke.
+     */
+    fun copy(source: DynamicBean, target: DynamicBean): DynamicBean {
+      val targetMap = target.data as MutableMap<String, Any?>
+      val writablePropertyNames = propertyNames(clazz = target::class, propertyType = Writable)
+      source.data.forEach { if (writablePropertyNames.contains(it.key)) targetMap[it.key] = it.value }
+      return target
+    }
   }
 }

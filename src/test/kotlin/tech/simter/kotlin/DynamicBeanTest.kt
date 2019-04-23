@@ -3,6 +3,7 @@ package tech.simter.kotlin
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import tech.simter.kotlin.DynamicBean.CaseType.UpperCase
+import tech.simter.kotlin.DynamicBean.Companion.copy
 import tech.simter.kotlin.DynamicBean.Companion.propertyNames
 import tech.simter.kotlin.DynamicBean.Companion.underscore
 import tech.simter.kotlin.DynamicBean.PropertyType.Readonly
@@ -96,6 +97,32 @@ class DynamicBeanTest {
     private val rb2: String? by holder
     protected var wb3: String? by holder
     protected val rb3: String? by holder
+  }
+
+  @Test
+  fun `copy property`() {
+    // copy from A to A
+    var source = A().apply { wa1 = "wa1" }
+    var target = A()
+    assertNotEquals(source, target)
+    copy(source, target)
+    assertEquals(source, target)
+
+    // copy from A to B
+    source = A().apply { wa1 = "wa1" }
+    target = B()
+    assertNull(target.wa1)
+    copy(source, target)
+    assertNotNull(target.wa1)
+    assertEquals(source.wa1, target.wa1)
+
+    // copy from B to A
+    source = B().apply { wa1 = "wa1" }
+    target = A()
+    assertNull(target.wa1)
+    copy(source, target)
+    assertNotNull(target.wa1)
+    assertEquals(source.wa1, target.wa1)
   }
 
   @Test
