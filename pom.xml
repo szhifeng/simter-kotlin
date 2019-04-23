@@ -18,6 +18,11 @@
       <artifactId>kotlin-stdlib</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-reflect</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- spring-data -->
     <dependency>
       <groupId>org.springframework.data</groupId>

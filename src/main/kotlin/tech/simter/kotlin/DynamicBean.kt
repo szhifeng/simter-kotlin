@@ -1,8 +1,15 @@
 package tech.simter.kotlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import tech.simter.kotlin.DynamicBean.CaseType.*
+import tech.simter.kotlin.DynamicBean.PropertyType.Writable
 import javax.persistence.MappedSuperclass
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KVisibility
+import kotlin.reflect.KVisibility.PUBLIC
+import kotlin.reflect.full.memberProperties
 
 /**
  * A super class for define a dynamic bean by inheritance.
@@ -62,7 +69,7 @@ open class DynamicBean {
     get() = holder.map
 
   override fun toString(): String {
-    return "${javaClass.simpleName}=$holder"
+    return "${javaClass.simpleName}=${holder.map}"
   }
 
   override fun equals(other: Any?): Boolean {
@@ -107,6 +114,87 @@ open class DynamicBean {
 
     override fun toString(): String {
       return data.toString()
+    }
+  }
+
+  /** Use for method [DynamicBean.propertyNames] */
+  enum class PropertyType {
+    All, Readonly, Writable
+  }
+
+  /** Use for method [DynamicBean.underscore] and [DynamicBean.propertyNames] */
+  enum class CaseType {
+    LowerCase, UpperCase, Ignore
+  }
+
+  companion object {
+    private val regex = Regex("([A-Z][a-z]+)")
+
+    /**
+     * Convert a came-case string to a underscore string.
+     *
+     * Default return lower-case string. Use [caseType] to change it.
+     *
+     * Default examples:
+     *
+     * - "a" | "A"  to a
+     * - "ABC"  to abc
+     * - "ABCar"  to ab_car
+     * - "myWork" | "MyWork"  to my_work
+     * - "myOfficeWork" | "MyOfficeWork" to my_office_work
+     */
+    fun underscore(source: String, caseType: CaseType = LowerCase): String {
+      val underscore = regex.replace(source.decapitalize()) { "_${it.value}" }
+      return when (caseType) {
+        LowerCase -> underscore.toLowerCase()
+        UpperCase -> underscore.toUpperCase()
+        else -> underscore
+      }
+    }
+
+    private val excludePropertyNames = listOf("data", "holder")
+
+    /**
+     * Find declared property names of [DynamicBean] sub-class.
+     *
+     * Default return all custom public property names.
+     * If want to return lower-case underscore name, set [underscore] to true.
+     */
+    fun <T : DynamicBean> propertyNames(
+      clazz: KClass<T>,
+      propertyType: PropertyType = PropertyType.All,
+      visibility: KVisibility = PUBLIC,
+      underscore: Boolean = false,
+      caseType: CaseType = Ignore
+    ): List<String> {
+      val list = clazz.memberProperties.filter {
+        it.visibility == visibility
+          && !excludePropertyNames.contains(it.name)
+          && when (propertyType) {
+          Writable -> it is KMutableProperty<*>
+          PropertyType.Readonly -> it !is KMutableProperty<*>
+          else -> true
+        }
+      }.map { it.name }
+      return if (underscore)
+        underscore(source = list.joinToString(","), caseType = caseType).split(",")
+      else list
+    }
+
+    /** Convenient method for [propertyNames] */
+    inline fun <reified T : DynamicBean> propertyNames(
+      propertyType: PropertyType = PropertyType.All,
+      visibility: KVisibility = PUBLIC,
+      underscore: Boolean = false,
+      caseType: CaseType = Ignore
+    ): List<String> {
+      return propertyNames(
+        clazz = T::class,
+        propertyType = propertyType,
+        visibility = visibility,
+        underscore = underscore,
+        caseType = caseType
+      )
     }
   }
 }
