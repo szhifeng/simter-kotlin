@@ -3,7 +3,7 @@ package tech.simter.kotlin
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import tech.simter.kotlin.DynamicBean.CaseType.UpperCase
-import tech.simter.kotlin.DynamicBean.Companion.copy
+import tech.simter.kotlin.DynamicBean.Companion.assign
 import tech.simter.kotlin.DynamicBean.Companion.propertyNames
 import tech.simter.kotlin.DynamicBean.Companion.underscore
 import tech.simter.kotlin.DynamicBean.Companion.verifySameNamePropertyHasSameValue
@@ -101,19 +101,19 @@ class DynamicBeanTest {
   }
 
   @Test
-  fun `copy property`() {
+  fun `assign to target instance`() {
     // copy from A to A
     var source = A().apply { wa1 = "wa1" }
     var target = A()
     assertNotEquals(source, target)
-    copy(source, target)
+    assign(target, source)
     assertEquals(source, target)
 
     // copy from A to B
     source = A().apply { wa1 = "wa1" }
     target = B()
     assertNull(target.wa1)
-    copy(source, target)
+    assign(target, source)
     assertNotNull(target.wa1)
     assertEquals(source.wa1, target.wa1)
 
@@ -121,8 +121,26 @@ class DynamicBeanTest {
     source = B().apply { wa1 = "wa1" }
     target = A()
     assertNull(target.wa1)
-    copy(source, target)
+    assign(target, source)
     assertNotNull(target.wa1)
+    assertEquals(source.wa1, target.wa1)
+  }
+
+  @Test
+  fun `assign to target type`() {
+    // copy from A to A
+    var source = A().apply { wa1 = "wa1" }
+    var target = assign<A>(source)
+    assertEquals(source, target)
+
+    // copy from A to B
+    source = A().apply { wa1 = "wa1" }
+    target = assign<B>(source)
+    assertEquals(source.wa1, target.wa1)
+
+    // copy from B to A
+    source = B().apply { wa1 = "wa1" }
+    target = assign<B>(source)
     assertEquals(source.wa1, target.wa1)
   }
 
@@ -134,7 +152,7 @@ class DynamicBeanTest {
     assertThrows(IllegalStateException::class.java) {
       verifySameNamePropertyHasSameValue(source, target)
     }
-    copy(source, target)
+    assign(target, source)
     verifySameNamePropertyHasSameValue(source, target)
 
     // verify between A and B
@@ -143,7 +161,7 @@ class DynamicBeanTest {
     assertThrows(IllegalStateException::class.java) {
       verifySameNamePropertyHasSameValue(source, target)
     }
-    copy(source, target)
+    assign(target, source)
     verifySameNamePropertyHasSameValue(source, target)
 
     // verify between B and A
@@ -152,7 +170,7 @@ class DynamicBeanTest {
     assertThrows(IllegalStateException::class.java) {
       verifySameNamePropertyHasSameValue(source, target)
     }
-    copy(source, target)
+    assign(target, source)
     verifySameNamePropertyHasSameValue(source, target)
   }
 

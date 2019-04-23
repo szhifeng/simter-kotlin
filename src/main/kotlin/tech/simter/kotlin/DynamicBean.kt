@@ -9,6 +9,7 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.KVisibility.PUBLIC
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -203,12 +204,29 @@ open class DynamicBean {
      * Only copy writable property of [target] from [source].
      *
      * Return [target] for chained invoke.
+     * @param[postProcessor] a post processor after property copied.
      */
-    fun copy(source: DynamicBean, target: DynamicBean): DynamicBean {
+    fun <S : DynamicBean, T : DynamicBean> assign(
+      target: T,
+      source: S,
+      postProcessor: (target: T) -> Unit = { _ -> }
+    ): T {
       val targetMap = target.data as MutableMap<String, Any?>
       val writablePropertyNames = propertyNames(clazz = target::class, propertyType = Writable)
       source.data.forEach { if (writablePropertyNames.contains(it.key)) targetMap[it.key] = it.value }
+      postProcessor(target)
       return target
+    }
+
+    /** Convenient method for [assign] */
+    inline fun <reified T : DynamicBean> assign(
+      source: DynamicBean,
+      noinline postProcessor: (target: T) -> Unit = { _ -> }
+    ): T {
+      val target = T::class.createInstance()
+      return assign(source = source,
+        target = target,
+        postProcessor = postProcessor)
     }
 
     /**
