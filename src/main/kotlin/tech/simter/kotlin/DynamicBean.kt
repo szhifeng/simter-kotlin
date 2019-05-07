@@ -3,6 +3,7 @@ package tech.simter.kotlin
 import com.fasterxml.jackson.annotation.JsonIgnore
 import tech.simter.kotlin.DynamicBean.CaseType.*
 import tech.simter.kotlin.DynamicBean.PropertyType.Writable
+import tech.simter.kotlin.annotation.Comment
 import javax.persistence.MappedSuperclass
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
@@ -10,7 +11,9 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * A super class for define a dynamic bean by inheritance.
@@ -154,6 +157,73 @@ open class DynamicBean {
     }
 
     private val excludePropertyNames = listOf("data", "holder")
+
+    fun <T : Any> mapChangedProperties(
+      bean: DynamicBean,
+      valueEncoder: ((index: Int, value: Any?, p: PropertyInfo) -> String?) = { _, value, _ -> value?.toString() },
+      collectionElementMapper: ((index: Int, value: Any?, encodedValue: String?, PropertyInfo) -> T)? = null,
+      propertyMapper: (value: Any?, encodedValue: String?, p: PropertyInfo) -> T
+    ): List<T> {
+      //Set<T>
+      val properties: Map<String, PropertyInfo> = properties(clazz = bean.javaClass.kotlin).associate { it.name to it }
+      val mapped = mutableListOf<T>()
+      var i = 0
+      bean.data.forEach { (propertyName, propertyValue) ->
+        val p = properties.getValue(propertyName)
+        if (collectionElementMapper != null && propertyValue is Collection<*>) { // collection property
+          propertyValue.forEachIndexed { index, itemValue ->
+            mapped.add(collectionElementMapper.invoke(index, itemValue, valueEncoder(index, itemValue, p), p))
+          }
+        } else { // simple property
+          mapped.add(propertyMapper(propertyValue, valueEncoder(i, propertyValue, p), p))
+        }
+        i++
+      }
+      return mapped
+    }
+
+    /**
+     * Find declared property names of [DynamicBean] sub-class.
+     *
+     * Default return all custom public property names.
+     */
+    fun <T : DynamicBean> properties(
+      clazz: KClass<T>,
+      propertyType: PropertyType = PropertyType.All,
+      visibility: KVisibility = PUBLIC,
+      predicate: (KProperty<*>) -> Boolean = { true }
+    ): List<PropertyInfo> {
+      return clazz.memberProperties.filter {
+        it.visibility == visibility
+          && !excludePropertyNames.contains(it.name)
+          && predicate(it)
+          && when (propertyType) {
+          Writable -> it is KMutableProperty<*>
+          PropertyType.Readonly -> it !is KMutableProperty<*>
+          else -> true
+        }
+      }.map {
+        PropertyInfo(
+          name = it.name,
+          comment = it.findAnnotation<Comment>()?.value,
+          type = it.returnType.jvmErasure
+        )
+      }
+    }
+
+    /** Convenient method for [properties] */
+    inline fun <reified T : DynamicBean> properties(
+      propertyType: PropertyType = PropertyType.All,
+      visibility: KVisibility = PUBLIC,
+      noinline predicate: (KProperty<*>) -> Boolean = { true }
+    ): List<PropertyInfo> {
+      return properties(
+        clazz = T::class,
+        propertyType = propertyType,
+        visibility = visibility,
+        predicate = predicate
+      )
+    }
 
     /**
      * Find declared property names of [DynamicBean] sub-class.
