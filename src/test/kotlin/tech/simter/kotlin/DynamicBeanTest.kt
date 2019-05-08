@@ -9,6 +9,10 @@ import tech.simter.kotlin.DynamicBean.Companion.underscore
 import tech.simter.kotlin.DynamicBean.Companion.verifySameNamePropertyHasSameValue
 import tech.simter.kotlin.DynamicBean.PropertyType.Readonly
 import tech.simter.kotlin.DynamicBean.PropertyType.Writable
+import tech.simter.kotlin.annotation.Comment
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 /**
  * Test [DynamicBean].
@@ -205,4 +209,165 @@ class DynamicBeanTest {
     assertEquals("AB_CAR", underscore(source = "ABCar", caseType = UpperCase))
     assertEquals("USER_DTO4_FORM", underscore(source = "UserDto4Form", caseType = UpperCase))
   }
+
+  @Test
+  fun `map changed properties`() {
+    val book = Book().apply {
+      id = 1
+      name = "book1"
+      authors = List(2) { Author().apply { id = 10 + it; name = "author$it" } }.toSet()
+    }
+    val operationItems = DynamicBean.mapChangedProperties(
+      bean = book
+    ) { _, encodedValue, p ->
+      OperationItem(
+        id = p.name,
+        title = p.comment ?: p.name,
+        valueType = p.typeName,
+        newValue = encodedValue
+      )
+    }
+    assertEquals(3, operationItems.size)
+    assertEquals(
+      OperationItem(
+        id = "id", title = "id", valueType = "kotlin.Int",
+        oldValue = null, newValue = book.id.toString()
+      ),
+      operationItems[0]
+    )
+    assertEquals(
+      OperationItem(
+        id = "name", title = "书名", valueType = "kotlin.String",
+        oldValue = null, newValue = book.name.toString()
+      ),
+      operationItems[1]
+    )
+    assertEquals(
+      OperationItem(
+        id = "authors", title = "作者", valueType = "kotlin.collections.Set",
+        oldValue = null, newValue = book.authors.toString()
+      ),
+      operationItems[2]
+    )
+  }
+
+  @Test
+  fun `map changed properties - with value encoder`() {
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    val now = OffsetDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+    val book = Book().apply {
+      createOn = now
+      authors = List(2) { Author().apply { id = 10 + it; name = "author$it" } }.toSet()
+    }
+    val operationItems = DynamicBean.mapChangedProperties(
+      bean = book,
+      valueEncoder = { _, value, p ->
+        if (p.name == "createOn") formatter.format(value as OffsetDateTime)
+        else value?.toString()
+      }
+    ) { _, encodedValue, p ->
+      OperationItem(
+        id = p.name,
+        title = p.comment ?: p.name,
+        valueType = p.typeName,
+        newValue = encodedValue
+      )
+    }
+    assertEquals(2, operationItems.size)
+    assertEquals(
+      OperationItem(
+        id = "createOn", title = "createOn", valueType = "java.time.OffsetDateTime",
+        oldValue = null, newValue = formatter.format(now)
+      ),
+      operationItems[0]
+    )
+    assertEquals(
+      OperationItem(
+        id = "authors", title = "作者", valueType = "kotlin.collections.Set",
+        oldValue = null, newValue = book.authors.toString()
+      ),
+      operationItems[1]
+    )
+  }
+
+  @Test
+  fun `map changed properties - with collection element mapper`() {
+    val author1 = Author().apply { id = 11; name = "author1" }
+    val author2 = Author().apply { id = 12; name = "author2"; nick = "a2" }
+    val book = Book().apply {
+      name = "book1"
+      authors = setOf(author1, author2)
+    }
+    val operationItems: List<OperationItem> = DynamicBean.mapChangedProperties(
+      bean = book,
+      collectionElementMapper = { index, value, encodedValue, p ->
+        value as Author
+        OperationItem(
+          id = "${p.name}.${value.id}",
+          title = "新增${value.name}",
+          valueType = Author::class.qualifiedName!!,
+          newValue = encodedValue
+        )
+      }
+    ) { _, encodedValue, p ->
+      OperationItem(
+        id = p.name,
+        title = p.comment ?: p.name,
+        valueType = p.typeName,
+        newValue = encodedValue
+      )
+    }
+    assertEquals(3, operationItems.size)
+    assertEquals(
+      OperationItem(
+        id = "name", title = "书名", valueType = "kotlin.String",
+        oldValue = null, newValue = book.name.toString()
+      ),
+      operationItems[0]
+    )
+    assertEquals(
+      OperationItem(
+        id = "authors.${author1.id}", title = "新增${author1.name}", valueType = Author::class.qualifiedName!!,
+        oldValue = null, newValue = author1.toString()
+      ),
+      operationItems[1]
+    )
+    assertEquals(
+      OperationItem(
+        id = "authors.${author2.id}", title = "新增${author2.name}", valueType = Author::class.qualifiedName!!,
+        oldValue = null, newValue = author2.toString()
+      ),
+      operationItems[2]
+    )
+  }
+
+  class Book : DynamicBean() {
+    var id: Int? by holder
+    @Comment("书名")
+    var name: String? by holder
+    @Comment("作者")
+    var authors: Set<Author>? by holder
+    var createOn: OffsetDateTime? by holder
+  }
+
+  class Author : DynamicBean() {
+    var id: Int? by holder
+    @Comment("姓名")
+    var name: String? by holder
+    var nick: String? by holder
+  }
+
+  data class Operation(
+    val type: String,
+    val title: String,
+    val items: Set<OperationItem> = setOf()
+  )
+
+  data class OperationItem(
+    var id: String,
+    var title: String,
+    var valueType: String,
+    var oldValue: String? = null,
+    var newValue: String? = null
+  )
 }
