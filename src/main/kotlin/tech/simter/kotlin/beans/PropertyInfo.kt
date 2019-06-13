@@ -1,4 +1,4 @@
-package tech.simter.kotlin
+package tech.simter.kotlin.beans
 
 import tech.simter.kotlin.annotation.Comment
 import kotlin.reflect.KClass

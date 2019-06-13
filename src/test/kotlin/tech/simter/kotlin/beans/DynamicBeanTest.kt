@@ -1,15 +1,15 @@
-package tech.simter.kotlin
+package tech.simter.kotlin.beans
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import tech.simter.kotlin.DynamicBean.CaseType.UpperCase
-import tech.simter.kotlin.DynamicBean.Companion.assign
-import tech.simter.kotlin.DynamicBean.Companion.propertyNames
-import tech.simter.kotlin.DynamicBean.Companion.underscore
-import tech.simter.kotlin.DynamicBean.Companion.verifySameNamePropertyHasSameValue
-import tech.simter.kotlin.DynamicBean.PropertyType.Readonly
-import tech.simter.kotlin.DynamicBean.PropertyType.Writable
 import tech.simter.kotlin.annotation.Comment
+import tech.simter.kotlin.beans.DynamicBean.CaseType.UpperCase
+import tech.simter.kotlin.beans.DynamicBean.Companion.assign
+import tech.simter.kotlin.beans.DynamicBean.Companion.propertyNames
+import tech.simter.kotlin.beans.DynamicBean.Companion.underscore
+import tech.simter.kotlin.beans.DynamicBean.Companion.verifySameNamePropertyHasSameValue
+import tech.simter.kotlin.beans.DynamicBean.PropertyType.Readonly
+import tech.simter.kotlin.beans.DynamicBean.PropertyType.Writable
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -86,7 +86,8 @@ class DynamicBeanTest {
     assertTrue(allNames.contains("rb1"))
   }
 
-  open class A : DynamicBean() {
+  @Suppress("unused")
+  open class A : AbstractDynamicBean() {
     var wa1: String? by holder
     val ra1: String? by holder
     private var wa2: String? by holder
@@ -95,6 +96,7 @@ class DynamicBeanTest {
     protected val ra3: String? by holder
   }
 
+  @Suppress("unused")
   open class B : A() {
     var wb1: String? by holder
     val rb1: String? by holder
@@ -300,7 +302,7 @@ class DynamicBeanTest {
     }
     val operationItems: List<OperationItem> = DynamicBean.mapChangedProperties(
       bean = book,
-      collectionElementMapper = { index, value, encodedValue, p ->
+      collectionElementMapper = { _, value, encodedValue, p ->
         value as Author
         OperationItem(
           id = "${p.name}.${value.id}",
@@ -341,7 +343,7 @@ class DynamicBeanTest {
     )
   }
 
-  class Book : DynamicBean() {
+  class Book : AbstractDynamicBean() {
     var id: Int? by holder
     @Comment("书名")
     var name: String? by holder
@@ -350,18 +352,12 @@ class DynamicBeanTest {
     var createOn: OffsetDateTime? by holder
   }
 
-  class Author : DynamicBean() {
+  class Author : AbstractDynamicBean() {
     var id: Int? by holder
     @Comment("姓名")
     var name: String? by holder
     var nick: String? by holder
   }
-
-  data class Operation(
-    val type: String,
-    val title: String,
-    val items: Set<OperationItem> = setOf()
-  )
 
   data class OperationItem(
     var id: String,

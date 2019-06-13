@@ -1,10 +1,7 @@
-package tech.simter.kotlin
+package tech.simter.kotlin.beans
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import tech.simter.kotlin.DynamicBean.CaseType.*
-import tech.simter.kotlin.DynamicBean.PropertyType.Writable
 import tech.simter.kotlin.annotation.Comment
-import javax.persistence.MappedSuperclass
+import tech.simter.kotlin.beans.DynamicBean.PropertyType.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
@@ -16,110 +13,13 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * A super class for define a dynamic bean by inheritance.
- *
- * 1. Use pattern `'var {propertyName}: {valueType}? by holder'` to define a dynamic property.
- * 2. To define a dynamic property, the subclass property must be mutable (var), nullable (T?) and no default value.
- * 3. The [data] property holds all settled dynamic property name and value. By default, it's a empty [Map].
- *
- * Example :
- * ```
- * class MyBean : DynamicBean() {
- *   var property1: String? by holder
- *   var property2: Int? by holder
- * }
- *
- * @Test
- * fun test() {
- *   val bean = MyBean()
- *   assertNotNull(bean.data)
- *   assertEquals(0, bean.data.size)
- *
- *   // default value is null if not settled
- *   assertNull(bean.data["property1"])
- *
- *   // set null value
- *   bean.property1 = null
- *   assertEquals(1, bean.data.size)
- *   assertNull(bean.data["property1"])
- *
- *   // set not null value
- *   bean.property1 = "value1"
- *   assertEquals(1, bean.data.size)
- *   assertEquals("value1", bean.data["property1"])
- *
- *   // set another property
- *   bean.property2 = 123
- *   assertEquals(2, bean.data.size)
- *   assertEquals("value1", bean.data["property1"])
- *   assertEquals(123, bean.data["property2"])
- * }
- * ```
+ * A simple dynamic bean interface to hold the changed property name and its value.
  *
  * @author RJ
  */
-@MappedSuperclass
-open class DynamicBean {
-  /** Properties data holder */
-  @get:JsonIgnore
-  @get:javax.persistence.Transient
-  @get:org.springframework.data.annotation.Transient
-  protected val holder: DataHolder = DataHolder()
-
-  @get:JsonIgnore
-  @get:javax.persistence.Transient
-  @get:org.springframework.data.annotation.Transient
+interface DynamicBean {
+  /** A [Map] hold all the property name and its value that have been set */
   val data: Map<String, Any?>
-    get() = holder.map
-
-  override fun toString(): String {
-    return "${javaClass.simpleName}=${holder.map}"
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as DynamicBean
-
-    if (holder != other.holder) return false
-
-    return true
-  }
-
-  override fun hashCode(): Int {
-    return holder.hashCode()
-  }
-
-  /**
-   * The data holder for hold the dynamic property name and value.
-   *
-   * All settled properties will be stored in a [MutableMap]. A [map] property return these stored data.
-   * The `key` is the property's name, the `value` is the property's value.
-   * If never set a property's value, a null value will be returned.
-   *
-   * See [Kotlin Delegated Properties](https://kotlinlang.org/docs/reference/delegated-properties.html).
-   *
-   * @author RJ
-   */
-  data class DataHolder(
-    private val data: MutableMap<String, Any?> = mutableMapOf<String, Any?>().withDefault { null }
-  ) {
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T> getValue(thisRef: Any?, property: KProperty<*>): T {
-      return data[property.name] as T
-    }
-
-    operator fun <T> setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-      data[property.name] = value
-    }
-
-    val map: Map<String, Any?> get() = data
-
-    override fun toString(): String {
-      return data.toString()
-    }
-  }
 
   /** Use for method [DynamicBean.propertyNames] */
   enum class PropertyType {
@@ -132,7 +32,8 @@ open class DynamicBean {
   }
 
   companion object {
-    private val regex = Regex("([A-Z][a-z]+)")
+    /** A regex for find the first upper-char in a word */
+    private val caseRegex = Regex("([A-Z][a-z]+)")
 
     /**
      * Convert a came-case string to a underscore string.
@@ -147,11 +48,11 @@ open class DynamicBean {
      * - "myWork" | "MyWork"  to my_work
      * - "myOfficeWork" | "MyOfficeWork" to my_office_work
      */
-    fun underscore(source: String, caseType: CaseType = LowerCase): String {
-      val underscore = regex.replace(source.decapitalize()) { "_${it.value}" }
+    fun underscore(source: String, caseType: CaseType = CaseType.LowerCase): String {
+      val underscore = caseRegex.replace(source.decapitalize()) { "_${it.value}" }
       return when (caseType) {
-        LowerCase -> underscore.toLowerCase()
-        UpperCase -> underscore.toUpperCase()
+        CaseType.LowerCase -> underscore.toLowerCase()
+        CaseType.UpperCase -> underscore.toUpperCase()
         else -> underscore
       }
     }
@@ -189,7 +90,7 @@ open class DynamicBean {
      */
     fun <T : DynamicBean> properties(
       clazz: KClass<T>,
-      propertyType: PropertyType = PropertyType.All,
+      propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       predicate: (KProperty<*>) -> Boolean = { true }
     ): List<PropertyInfo> {
@@ -199,7 +100,7 @@ open class DynamicBean {
           && predicate(it)
           && when (propertyType) {
           Writable -> it is KMutableProperty<*>
-          PropertyType.Readonly -> it !is KMutableProperty<*>
+          Readonly -> it !is KMutableProperty<*>
           else -> true
         }
       }.map {
@@ -213,7 +114,7 @@ open class DynamicBean {
 
     /** Convenient method for [properties] */
     inline fun <reified T : DynamicBean> properties(
-      propertyType: PropertyType = PropertyType.All,
+      propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       noinline predicate: (KProperty<*>) -> Boolean = { true }
     ): List<PropertyInfo> {
@@ -233,17 +134,17 @@ open class DynamicBean {
      */
     fun <T : DynamicBean> propertyNames(
       clazz: KClass<T>,
-      propertyType: PropertyType = PropertyType.All,
+      propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       underscore: Boolean = false,
-      caseType: CaseType = Ignore
+      caseType: CaseType = CaseType.Ignore
     ): List<String> {
       val list = clazz.memberProperties.filter {
         it.visibility == visibility
           && !excludePropertyNames.contains(it.name)
           && when (propertyType) {
           Writable -> it is KMutableProperty<*>
-          PropertyType.Readonly -> it !is KMutableProperty<*>
+          Readonly -> it !is KMutableProperty<*>
           else -> true
         }
       }.map { it.name }
@@ -254,10 +155,10 @@ open class DynamicBean {
 
     /** Convenient method for [propertyNames] */
     inline fun <reified T : DynamicBean> propertyNames(
-      propertyType: PropertyType = PropertyType.All,
+      propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       underscore: Boolean = false,
-      caseType: CaseType = Ignore
+      caseType: CaseType = CaseType.Ignore
     ): List<String> {
       return propertyNames(
         clazz = T::class,
@@ -295,8 +196,8 @@ open class DynamicBean {
     ): T {
       val target = T::class.createInstance()
       return assign(source = source,
-        target = target,
-        postProcessor = postProcessor)
+                    target = target,
+                    postProcessor = postProcessor)
     }
 
     /**
@@ -306,7 +207,7 @@ open class DynamicBean {
      *
      * If [source] and [target] has difference not null properties, throw [IllegalStateException]..
      *
-     * Notes: only verify properties that delegate to [holder].
+     * Notes: only verify properties that delegate to [DynamicBean.data].
      *
      * @param[excludes] some property names need to exclude from verification
      */
