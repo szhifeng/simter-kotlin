@@ -1,15 +1,12 @@
-package tech.simter.kotlin
+package tech.simter.kotlin.beans
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import tech.simter.kotlin.DynamicBean.CaseType.UpperCase
-import tech.simter.kotlin.DynamicBean.Companion.assign
-import tech.simter.kotlin.DynamicBean.Companion.propertyNames
-import tech.simter.kotlin.DynamicBean.Companion.underscore
-import tech.simter.kotlin.DynamicBean.Companion.verifySameNamePropertyHasSameValue
-import tech.simter.kotlin.DynamicBean.PropertyType.Readonly
-import tech.simter.kotlin.DynamicBean.PropertyType.Writable
 import tech.simter.kotlin.annotation.Comment
+import tech.simter.kotlin.beans.DynamicBean.Companion.assign
+import tech.simter.kotlin.beans.DynamicBean.Companion.propertyNames
+import tech.simter.kotlin.beans.DynamicBean.PropertyType.Readonly
+import tech.simter.kotlin.beans.DynamicBean.PropertyType.Writable
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -86,7 +83,8 @@ class DynamicBeanTest {
     assertTrue(allNames.contains("rb1"))
   }
 
-  open class A : DynamicBean() {
+  @Suppress("unused")
+  open class A : AbstractDynamicBean() {
     var wa1: String? by holder
     val ra1: String? by holder
     private var wa2: String? by holder
@@ -95,6 +93,7 @@ class DynamicBeanTest {
     protected val ra3: String? by holder
   }
 
+  @Suppress("unused")
   open class B : A() {
     var wb1: String? by holder
     val rb1: String? by holder
@@ -146,68 +145,6 @@ class DynamicBeanTest {
     source = B().apply { wa1 = "wa1" }
     target = assign<B>(source)
     assertEquals(source.wa1, target.wa1)
-  }
-
-  @Test
-  fun `verify property`() {
-    // verify between A and A
-    var source = A().apply { wa1 = "wa1" }
-    var target = A()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-
-    // verify between A and B
-    source = A().apply { wa1 = "wa1" }
-    target = B()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-
-    // verify between B and A
-    source = B().apply { wa1 = "wa1" }
-    target = A()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-  }
-
-  @Test
-  fun `underscore - lower-case`() {
-    assertEquals("my_work", underscore("myWork"))
-    assertEquals("my_work", underscore("MyWork"))
-
-    assertEquals("my_office_work", underscore("myOfficeWork"))
-    assertEquals("my_office_work", underscore("MyOfficeWork"))
-
-    assertEquals("a", underscore("a"))
-    assertEquals("a", underscore("A"))
-    assertEquals("abc", underscore("Abc"))
-    assertEquals("abc", underscore("ABC"))
-    assertEquals("ab_car", underscore("ABCar"))
-    assertEquals("user_dto4_form", underscore("UserDto4Form"))
-  }
-
-  @Test
-  fun `underscore - upper-case`() {
-    assertEquals("MY_WORK", underscore(source = "myWork", caseType = UpperCase))
-    assertEquals("MY_WORK", underscore(source = "MyWork", caseType = UpperCase))
-
-    assertEquals("MY_OFFICE_WORK", underscore(source = "myOfficeWork", caseType = UpperCase))
-    assertEquals("MY_OFFICE_WORK", underscore(source = "MyOfficeWork", caseType = UpperCase))
-
-    assertEquals("A", underscore(source = "a", caseType = UpperCase))
-    assertEquals("A", underscore(source = "A", caseType = UpperCase))
-    assertEquals("ABC", underscore(source = "Abc", caseType = UpperCase))
-    assertEquals("ABC", underscore(source = "ABC", caseType = UpperCase))
-    assertEquals("AB_CAR", underscore(source = "ABCar", caseType = UpperCase))
-    assertEquals("USER_DTO4_FORM", underscore(source = "UserDto4Form", caseType = UpperCase))
   }
 
   @Test
@@ -300,7 +237,7 @@ class DynamicBeanTest {
     }
     val operationItems: List<OperationItem> = DynamicBean.mapChangedProperties(
       bean = book,
-      collectionElementMapper = { index, value, encodedValue, p ->
+      collectionElementMapper = { _, value, encodedValue, p ->
         value as Author
         OperationItem(
           id = "${p.name}.${value.id}",
@@ -341,7 +278,7 @@ class DynamicBeanTest {
     )
   }
 
-  class Book : DynamicBean() {
+  class Book : AbstractDynamicBean() {
     var id: Int? by holder
     @Comment("书名")
     var name: String? by holder
@@ -350,18 +287,12 @@ class DynamicBeanTest {
     var createOn: OffsetDateTime? by holder
   }
 
-  class Author : DynamicBean() {
+  class Author : AbstractDynamicBean() {
     var id: Int? by holder
     @Comment("姓名")
     var name: String? by holder
     var nick: String? by holder
   }
-
-  data class Operation(
-    val type: String,
-    val title: String,
-    val items: Set<OperationItem> = setOf()
-  )
 
   data class OperationItem(
     var id: String,
