@@ -3,11 +3,8 @@ package tech.simter.kotlin.beans
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import tech.simter.kotlin.annotation.Comment
-import tech.simter.kotlin.beans.DynamicBean.CaseType.UpperCase
 import tech.simter.kotlin.beans.DynamicBean.Companion.assign
 import tech.simter.kotlin.beans.DynamicBean.Companion.propertyNames
-import tech.simter.kotlin.beans.DynamicBean.Companion.underscore
-import tech.simter.kotlin.beans.DynamicBean.Companion.verifySameNamePropertyHasSameValue
 import tech.simter.kotlin.beans.DynamicBean.PropertyType.Readonly
 import tech.simter.kotlin.beans.DynamicBean.PropertyType.Writable
 import java.time.OffsetDateTime
@@ -178,38 +175,6 @@ class DynamicBeanTest {
     }
     assign(target, source)
     verifySameNamePropertyHasSameValue(source, target)
-  }
-
-  @Test
-  fun `underscore - lower-case`() {
-    assertEquals("my_work", underscore("myWork"))
-    assertEquals("my_work", underscore("MyWork"))
-
-    assertEquals("my_office_work", underscore("myOfficeWork"))
-    assertEquals("my_office_work", underscore("MyOfficeWork"))
-
-    assertEquals("a", underscore("a"))
-    assertEquals("a", underscore("A"))
-    assertEquals("abc", underscore("Abc"))
-    assertEquals("abc", underscore("ABC"))
-    assertEquals("ab_car", underscore("ABCar"))
-    assertEquals("user_dto4_form", underscore("UserDto4Form"))
-  }
-
-  @Test
-  fun `underscore - upper-case`() {
-    assertEquals("MY_WORK", underscore(source = "myWork", caseType = UpperCase))
-    assertEquals("MY_WORK", underscore(source = "MyWork", caseType = UpperCase))
-
-    assertEquals("MY_OFFICE_WORK", underscore(source = "myOfficeWork", caseType = UpperCase))
-    assertEquals("MY_OFFICE_WORK", underscore(source = "MyOfficeWork", caseType = UpperCase))
-
-    assertEquals("A", underscore(source = "a", caseType = UpperCase))
-    assertEquals("A", underscore(source = "A", caseType = UpperCase))
-    assertEquals("ABC", underscore(source = "Abc", caseType = UpperCase))
-    assertEquals("ABC", underscore(source = "ABC", caseType = UpperCase))
-    assertEquals("AB_CAR", underscore(source = "ABCar", caseType = UpperCase))
-    assertEquals("USER_DTO4_FORM", underscore(source = "UserDto4Form", caseType = UpperCase))
   }
 
   @Test

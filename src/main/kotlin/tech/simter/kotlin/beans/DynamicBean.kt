@@ -2,6 +2,9 @@ package tech.simter.kotlin.beans
 
 import tech.simter.kotlin.annotation.Comment
 import tech.simter.kotlin.beans.DynamicBean.PropertyType.*
+import tech.simter.util.StringUtils
+import tech.simter.util.StringUtils.CaseType
+import tech.simter.util.StringUtils.CaseType.Original
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
@@ -15,10 +18,12 @@ import kotlin.reflect.jvm.jvmErasure
 /**
  * A simple dynamic bean interface to hold the changed property name and its value.
  *
+ * Implementation should keep all delegate property delegate to this [DynamicBean.data].
+ *
  * @author RJ
  */
 interface DynamicBean {
-  /** A [Map] hold all the property name and its value that have been set */
+  /** A [Map] hold all the delegate property name and its value that have been set */
   val data: Map<String, Any?>
 
   /** Use for method [DynamicBean.propertyNames] */
@@ -26,37 +31,7 @@ interface DynamicBean {
     All, Readonly, Writable
   }
 
-  /** Use for method [DynamicBean.underscore] and [DynamicBean.propertyNames] */
-  enum class CaseType {
-    LowerCase, UpperCase, Ignore
-  }
-
   companion object {
-    /** A regex for find the first upper-char in a word */
-    private val caseRegex = Regex("([A-Z][a-z]+)")
-
-    /**
-     * Convert a came-case string to a underscore string.
-     *
-     * Default return lower-case string. Use [caseType] to change it.
-     *
-     * Default examples:
-     *
-     * - "a" | "A"  to a
-     * - "ABC"  to abc
-     * - "ABCar"  to ab_car
-     * - "myWork" | "MyWork"  to my_work
-     * - "myOfficeWork" | "MyOfficeWork" to my_office_work
-     */
-    fun underscore(source: String, caseType: CaseType = CaseType.LowerCase): String {
-      val underscore = caseRegex.replace(source.decapitalize()) { "_${it.value}" }
-      return when (caseType) {
-        CaseType.LowerCase -> underscore.toLowerCase()
-        CaseType.UpperCase -> underscore.toUpperCase()
-        else -> underscore
-      }
-    }
-
     private val excludePropertyNames = listOf("data", "holder")
 
     fun <T : Any> mapChangedProperties(
@@ -137,7 +112,7 @@ interface DynamicBean {
       propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       underscore: Boolean = false,
-      caseType: CaseType = CaseType.Ignore
+      caseType: CaseType = Original
     ): List<String> {
       val list = clazz.memberProperties.filter {
         it.visibility == visibility
@@ -149,7 +124,7 @@ interface DynamicBean {
         }
       }.map { it.name }
       return if (underscore)
-        underscore(source = list.joinToString(","), caseType = caseType).split(",")
+        StringUtils.underscore(source = list.joinToString(","), caseType = caseType).split(",")
       else list
     }
 
@@ -158,7 +133,7 @@ interface DynamicBean {
       propertyType: PropertyType = All,
       visibility: KVisibility = PUBLIC,
       underscore: Boolean = false,
-      caseType: CaseType = CaseType.Ignore
+      caseType: CaseType = Original
     ): List<String> {
       return propertyNames(
         clazz = T::class,

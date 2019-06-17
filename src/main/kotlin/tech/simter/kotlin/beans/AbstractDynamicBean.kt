@@ -12,7 +12,7 @@ import javax.persistence.MappedSuperclass
  *
  * Example :
  * ```
- * class MyBean : DynamicBean() {
+ * class MyBean : AbstractDynamicBean() {
  *   var property1: String? by holder
  *   var property2: Int? by holder
  * }
@@ -59,10 +59,6 @@ abstract class AbstractDynamicBean : DynamicBean {
   @get:org.springframework.data.annotation.Transient
   override val data: Map<String, Any?>
     get() = holder.map
-
-  override fun toString(): String {
-    return "${javaClass.simpleName}=${holder.map}"
-  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
