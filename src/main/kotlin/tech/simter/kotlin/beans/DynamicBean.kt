@@ -174,35 +174,5 @@ interface DynamicBean {
                     target = target,
                     postProcessor = postProcessor)
     }
-
-    /**
-     * Check whether the property of the same name has the same value between [source] from [target].
-     *
-     * Null value would be ignored.
-     *
-     * If [source] and [target] has difference not null properties, throw [IllegalStateException]..
-     *
-     * Notes: only verify properties that delegate to [DynamicBean.data].
-     *
-     * @param[excludes] some property names need to exclude from verification
-     */
-    fun verifySameNamePropertyHasSameValue(
-      source: DynamicBean,
-      target: DynamicBean,
-      excludes: List<String> = emptyList()
-    ) {
-      val sourcePropertyNames = propertyNames(clazz = source::class)
-      val targetPropertyNames = propertyNames(clazz = target::class)
-      val mainProperties = sourcePropertyNames.filter { targetPropertyNames.contains(it) && !excludes.contains(it) }
-      //println("mainProperties=$mainProperties")
-      val sourceNotNullProperties = source.data.filter { mainProperties.contains(it.key) && it.value != null }
-      val targetNotNullProperties = target.data.filter { mainProperties.contains(it.key) && it.value != null }
-      if (sourceNotNullProperties != targetNotNullProperties)
-        throw IllegalStateException("""
-          source and target has difference not null properties:
-            sourceNotNullProperties=$sourceNotNullProperties
-            targetNotNullProperties=$targetNotNullProperties
-        """.trimIndent())
-    }
   }
 }

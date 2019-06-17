@@ -148,36 +148,6 @@ class DynamicBeanTest {
   }
 
   @Test
-  fun `verify property`() {
-    // verify between A and A
-    var source = A().apply { wa1 = "wa1" }
-    var target = A()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-
-    // verify between A and B
-    source = A().apply { wa1 = "wa1" }
-    target = B()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-
-    // verify between B and A
-    source = B().apply { wa1 = "wa1" }
-    target = A()
-    assertThrows(IllegalStateException::class.java) {
-      verifySameNamePropertyHasSameValue(source, target)
-    }
-    assign(target, source)
-    verifySameNamePropertyHasSameValue(source, target)
-  }
-
-  @Test
   fun `map changed properties`() {
     val book = Book().apply {
       id = 1
