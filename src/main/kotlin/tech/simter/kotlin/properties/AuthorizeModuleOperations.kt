@@ -30,6 +30,7 @@ package tech.simter.kotlin.properties
  * @author RJ
  * @see [AuthorizeOperations]
  */
+@Deprecated("use simter-reactive-security/tech.simter.reactive.security.properties.ModuleAuthorizeProperties")
 data class AuthorizeModuleOperations(
   /** key is the module identity, value is a nested map.
    *

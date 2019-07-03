@@ -16,6 +16,7 @@ package tech.simter.kotlin.properties
  * @see [AuthorizeModuleOperations]
  * @see [AuthorizeOperations]
  */
+@Deprecated("use simter-reactive-security/tech.simter.reactive.security.properties.ModuleAuthorizeProperties")
 data class AuthorizeRole(
   val roles: List<String> = mutableListOf(),
   var strategy: Strategy = Strategy.Or
