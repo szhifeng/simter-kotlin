@@ -1,5 +1,9 @@
 # simter-kotlin changelog
 
+## 1.3.1 - 2019-07-27
+
+- Simplify kotlin config
+
 ## 1.3.0 - 2019-07-03
 
 No code changed, just polishing maven config and unit test.
