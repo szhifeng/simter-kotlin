@@ -27,6 +27,11 @@
       <artifactId>kotlin-reflect</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-serialization-runtime</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- spring-data -->
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -81,7 +86,10 @@
         <artifactId>kotlin-maven-plugin</artifactId>
         <configuration>
           <compilerPlugins>
+            <!-- Spring support: https://kotlinlang.org/docs/reference/compiler-plugins.html#spring-support -->
             <plugin>spring</plugin>
+            <!-- Kotlin serialization support: https://github.com/Kotlin/kotlinx.serialization -->
+            <plugin>kotlinx-serialization</plugin>
           </compilerPlugins>
         </configuration>
       </plugin>
