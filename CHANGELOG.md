@@ -1,5 +1,13 @@
 # simter-kotlin changelog
 
+## 1.4.0-M1 - 2019-12-03
+
+- Upgrade to simter-1.3.0-M8
+- Add KSerializer implementation for iso-year-month-day-time (such as 2019-12-01T10:20:30)
+- Add KSerializer implementation for common-year-month-day-time (such as 2019-12-01 10:20:30)
+- Add kotlinx-serialization dependency
+- Remove deprecated classes: tech.simter.kotlin.properties.*
+
 ## 1.3.1 - 2019-07-27
 
 - Simplify kotlin config
