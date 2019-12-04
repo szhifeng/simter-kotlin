@@ -2,6 +2,7 @@
 // A file-level annotation `@file:ContextualSerialization(A::class, B::class)`
 // instructs compiler plugin to use ContextSerializer everywhere in this file for properties of types A and B.
 @file:ContextualSerialization(
+  OffsetDateTime::class,
   LocalDateTime::class,
   LocalDate::class,
   LocalTime::class,
@@ -38,12 +39,13 @@ class IsoJavaTimeSerialModuleCase2Test {
     val p4: MonthDay,
     val p5: Month,
     val p6: YearMonth,
-    val p7: Year
+    val p7: Year,
+    val p8: OffsetDateTime
   )
 
   @Test
   fun test() {
-    val t = LocalDateTime.of(2019, 1, 31, 1, 20, 59)
+    val t = OffsetDateTime.of(2019, 1, 31, 1, 20, 59, 0, ZoneOffset.ofHours(2))
     val str = """{
       "p1": "2019-01-31T01:20:59",
       "p2": "2019-01-31",
@@ -51,19 +53,21 @@ class IsoJavaTimeSerialModuleCase2Test {
       "p4": "01-31",
       "p5": 1,
       "p6": "2019-01",
-      "p7": 2019
+      "p7": 2019,
+      "p8": "2019-01-31T01:20:59+02:00"
     }""".replace(" ", "")
       .replace("\r\n", "")
       .replace("\r", "")
       .replace("\n", "")
     val bean = Bean(
-      p1 = t,
+      p1 = t.toLocalDateTime(),
       p2 = t.toLocalDate(),
       p3 = t.toLocalTime(),
       p4 = MonthDay.from(t),
       p5 = t.month,
       p6 = YearMonth.from(t),
-      p7 = Year.from(t)
+      p7 = Year.from(t),
+      p8 = t
     )
     assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
     assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)

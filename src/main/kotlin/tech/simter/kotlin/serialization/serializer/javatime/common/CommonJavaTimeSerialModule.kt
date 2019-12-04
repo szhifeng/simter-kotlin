@@ -54,8 +54,9 @@ import kotlin.reflect.KClass
  * ```
  */
 val CommonJavaTimeSerialModule: SerialModule = serializersModuleOf(mapOf<KClass<*>, KSerializer<*>>(
-  LocalDate::class to IsoLocalDateSerializer,
+  OffsetDateTime::class to CommonOffsetDateTimeSerializer,
   LocalDateTime::class to CommonLocalDateTimeSerializer,
+  LocalDate::class to IsoLocalDateSerializer,
   LocalTime::class to IsoLocalTimeSerializer,
   MonthDay::class to IsoMonthDaySerializer,
   Month::class to MonthSerializer,
