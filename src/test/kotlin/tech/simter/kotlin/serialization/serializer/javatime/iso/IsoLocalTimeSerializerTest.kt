@@ -13,10 +13,11 @@ import java.time.LocalTime
  * @author RJ
  */
 class IsoLocalTimeSerializerTest {
-  private val stableJson = Json(Stable)
+  private val json = Json(Stable.copy(encodeDefaults = false))
 
   @Serializable
   data class Bean(
+    val ps: List<@Serializable(with = IsoLocalTimeSerializer::class) LocalTime>,
     @Serializable(with = IsoLocalTimeSerializer::class)
     val p1: LocalTime,
     @Serializable(with = IsoLocalTimeSerializer::class)
@@ -27,13 +28,10 @@ class IsoLocalTimeSerializerTest {
 
   @Test
   fun test() {
-    val str = """{
-      "p1": "10:20:30",
-      "p2": null
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(LocalTime.of(10, 20, 30))
-    assertThat(b.p2).isNull()
-    assertThat(b.p3).isNull()
+    val t = LocalTime.of(1, 20, 59)
+    val str = """{"ps":["01:20:59"],"p1":"01:20:59","p2":null}"""
+    val bean = Bean(ps = listOf(t), p1 = t, p2 = null)
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }

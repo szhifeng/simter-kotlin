@@ -2,13 +2,13 @@
 // A file-level annotation `UseSerializers` instructs all properties of the Serializer's type
 // in all classes in this file would be serialized with these Serializers.
 @file:UseSerializers(
-  IsoLocalDateSerializer::class,
   IsoLocalDateTimeSerializer::class,
+  IsoLocalDateSerializer::class,
   IsoLocalTimeSerializer::class,
   IsoMonthDaySerializer::class,
-  IsoMonthSerializer::class,
+  MonthSerializer::class,
   IsoYearMonthSerializer::class,
-  IsoYearSerializer::class
+  YearSerializer::class
 )
 
 package tech.simter.kotlin.serialization.serializer.javatime.iso
@@ -19,6 +19,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration.Companion.Stable
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tech.simter.kotlin.serialization.serializer.javatime.MonthSerializer
+import tech.simter.kotlin.serialization.serializer.javatime.YearSerializer
 import java.time.*
 
 /**
@@ -27,12 +29,12 @@ import java.time.*
  * @author RJ
  */
 class FileLevelUseSerializersTest {
-  private val stableJson = Json(Stable)
+  private val json = Json(Stable)
 
   @Serializable
   data class Bean(
-    val p1: LocalDate,
-    val p2: LocalDateTime,
+    val p1: LocalDateTime,
+    val p2: LocalDate,
     val p3: LocalTime,
     val p4: MonthDay,
     val p5: Month,
@@ -42,22 +44,29 @@ class FileLevelUseSerializersTest {
 
   @Test
   fun test() {
+    val t = LocalDateTime.of(2019, 1, 31, 1, 20, 59)
     val str = """{
-      "p1": "2019-12-01",
-      "p2": "2019-12-01T10:20:30",
-      "p3": "10:20:30",
-      "p4": "12-01",
-      "p5": "12",
-      "p6": "2019-12",
-      "p7": "2019"
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(LocalDate.of(2019, 12, 1))
-    assertThat(b.p2).isEqualTo(LocalDateTime.of(2019, 12, 1, 10, 20, 30))
-    assertThat(b.p3).isEqualTo(LocalTime.of(10, 20, 30))
-    assertThat(b.p4).isEqualTo(MonthDay.of(12, 1))
-    assertThat(b.p5).isEqualTo(Month.of(12))
-    assertThat(b.p6).isEqualTo(YearMonth.of(2019, 12))
-    assertThat(b.p7).isEqualTo(Year.of(2019))
+      "p1": "2019-01-31T01:20:59",
+      "p2": "2019-01-31",
+      "p3": "01:20:59",
+      "p4": "01-31",
+      "p5": 1,
+      "p6": "2019-01",
+      "p7": 2019
+    }""".replace(" ", "")
+      .replace("\r\n", "")
+      .replace("\r", "")
+      .replace("\n", "")
+    val bean = Bean(
+      p1 = t,
+      p2 = t.toLocalDate(),
+      p3 = t.toLocalTime(),
+      p4 = MonthDay.from(t),
+      p5 = t.month,
+      p6 = YearMonth.from(t),
+      p7 = Year.from(t)
+    )
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }

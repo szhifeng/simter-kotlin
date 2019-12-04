@@ -13,10 +13,11 @@ import java.time.YearMonth
  * @author RJ
  */
 class IsoYearMonthSerializerTest {
-  private val stableJson = Json(Stable)
+  private val json = Json(Stable.copy(encodeDefaults = false))
 
   @Serializable
   data class Bean(
+    val ps: List<@Serializable(with = IsoYearMonthSerializer::class) YearMonth>,
     @Serializable(with = IsoYearMonthSerializer::class)
     val p1: YearMonth,
     @Serializable(with = IsoYearMonthSerializer::class)
@@ -27,13 +28,10 @@ class IsoYearMonthSerializerTest {
 
   @Test
   fun test() {
-    val str = """{
-      "p1": "2019-12",
-      "p2": null
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(YearMonth.of(2019, 12))
-    assertThat(b.p2).isNull()
-    assertThat(b.p3).isNull()
+    val ym = YearMonth.of(2019, 1)
+    val str = """{"ps":["2019-01"],"p1":"2019-01","p2":null}"""
+    val bean = Bean(ps = listOf(ym), p1 = ym, p2 = null)
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }

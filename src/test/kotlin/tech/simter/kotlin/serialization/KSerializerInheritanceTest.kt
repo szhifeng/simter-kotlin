@@ -22,7 +22,7 @@ class KSerializerInheritanceTest {
   )
 
   @Test
-  fun `Failed to implement KSerializer with inheritance`() {
+  fun test() {
     val json = """{"p":"2019-12-01"}"""
     val bean = Bean(p = LocalDate.of(2019, 12, 1))
 

@@ -2,8 +2,8 @@
 // A file-level annotation `@file:ContextualSerialization(A::class, B::class)`
 // instructs compiler plugin to use ContextSerializer everywhere in this file for properties of types A and B.
 @file:ContextualSerialization(
-  LocalDate::class,
   LocalDateTime::class,
+  LocalDate::class,
   LocalTime::class,
   MonthDay::class,
   Month::class,
@@ -28,12 +28,12 @@ import java.time.*
  */
 class IsoJavaTimeSerialModuleCase2Test {
   // See https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md#contextualserialization-annotation
-  private val stableJson = Json(configuration = Stable, context = IsoJavaTimeSerialModule)
+  private val json = Json(configuration = Stable, context = IsoJavaTimeSerialModule)
 
   @Serializable
   data class Bean(
-    val p1: LocalDate,
-    val p2: LocalDateTime,
+    val p1: LocalDateTime,
+    val p2: LocalDate,
     val p3: LocalTime,
     val p4: MonthDay,
     val p5: Month,
@@ -43,22 +43,29 @@ class IsoJavaTimeSerialModuleCase2Test {
 
   @Test
   fun test() {
+    val t = LocalDateTime.of(2019, 1, 31, 1, 20, 59)
     val str = """{
-      "p1": "2019-12-01",
-      "p2": "2019-12-01T10:20:30",
-      "p3": "10:20:30",
-      "p4": "12-01",
-      "p5": "12",
-      "p6": "2019-12",
-      "p7": "2019"
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(LocalDate.of(2019, 12, 1))
-    assertThat(b.p2).isEqualTo(LocalDateTime.of(2019, 12, 1, 10, 20, 30))
-    assertThat(b.p3).isEqualTo(LocalTime.of(10, 20, 30))
-    assertThat(b.p4).isEqualTo(MonthDay.of(12, 1))
-    assertThat(b.p5).isEqualTo(Month.of(12))
-    assertThat(b.p6).isEqualTo(YearMonth.of(2019, 12))
-    assertThat(b.p7).isEqualTo(Year.of(2019))
+      "p1": "2019-01-31T01:20:59",
+      "p2": "2019-01-31",
+      "p3": "01:20:59",
+      "p4": "01-31",
+      "p5": 1,
+      "p6": "2019-01",
+      "p7": 2019
+    }""".replace(" ", "")
+      .replace("\r\n", "")
+      .replace("\r", "")
+      .replace("\n", "")
+    val bean = Bean(
+      p1 = t,
+      p2 = t.toLocalDate(),
+      p3 = t.toLocalTime(),
+      p4 = MonthDay.from(t),
+      p5 = t.month,
+      p6 = YearMonth.from(t),
+      p7 = Year.from(t)
+    )
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }

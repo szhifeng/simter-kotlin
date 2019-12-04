@@ -3,6 +3,8 @@ package tech.simter.kotlin.serialization.serializer.javatime.iso
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.SerialModule
 import kotlinx.serialization.modules.serializersModuleOf
+import tech.simter.kotlin.serialization.serializer.javatime.MonthSerializer
+import tech.simter.kotlin.serialization.serializer.javatime.YearSerializer
 import java.time.*
 import kotlin.reflect.KClass
 
@@ -48,11 +50,11 @@ import kotlin.reflect.KClass
  * ```
  */
 val IsoJavaTimeSerialModule: SerialModule = serializersModuleOf(mapOf<KClass<*>, KSerializer<*>>(
-  LocalDate::class to IsoLocalDateSerializer,
   LocalDateTime::class to IsoLocalDateTimeSerializer,
+  LocalDate::class to IsoLocalDateSerializer,
   LocalTime::class to IsoLocalTimeSerializer,
   MonthDay::class to IsoMonthDaySerializer,
-  Month::class to IsoMonthSerializer,
+  Month::class to MonthSerializer,
   YearMonth::class to IsoYearMonthSerializer,
-  Year::class to IsoYearSerializer
+  Year::class to YearSerializer
 ))
