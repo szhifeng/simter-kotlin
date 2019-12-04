@@ -23,20 +23,22 @@ class KSerializerInheritanceTest {
 
   @Test
   fun `Failed to implement KSerializer with inheritance`() {
-    val str = """{
-      "p": "2019-12-02"
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p).isEqualTo(LocalDate.of(2019, 12, 1))
+    val json = """{"p":"2019-12-01"}"""
+    val bean = Bean(p = LocalDate.of(2019, 12, 1))
+
+    // deserialize
+    assertThat(stableJson.parse(Bean.serializer(), json)).isEqualTo(bean)
+
+    // serialize
+    assertThat(stableJson.stringify(Bean.serializer(), bean)).isEqualTo(json)
   }
 }
 
-@Serializer(forClass = LocalDate::class)
+//@Serializer(forClass = LocalDate::class)
+// - add this annotation would raise error "kotlinx.serialization.json.JsonDecodingException: Invalid JSON at 13: Expected '{, kind: CLASS'"
+//   See https://github.com/Kotlin/kotlinx.serialization/issues/619
 object IsoLocalDateSerializer : LocalDateSerializer(DateTimeFormatter.ISO_DATE)
 
-/**
- * TODO : Failed to implement KSerializer with inheritance
- */
 open class LocalDateSerializer(private val formatter: DateTimeFormatter) : KSerializer<LocalDate> {
   override val descriptor: SerialDescriptor = StringDescriptor.withName("java.time.LocalDate")
   override fun deserialize(decoder: Decoder): LocalDate {
