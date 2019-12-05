@@ -1,25 +1,19 @@
 package tech.simter.kotlin.serialization.serializer.javatime.iso
 
-import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
+import kotlinx.serialization.Decoder
+import kotlinx.serialization.KSerializer
+import tech.simter.kotlin.serialization.serializer.javatime.AbstractJavaTimeSerializer
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ofPattern
 
 /**
- * A [YearMonth] [KSerializer] with string format 'yyyy-MM'.
+ * A [KSerializer] between [YearMonth] and string value with format 'yyyy-MM'.
  *
  * @author RJ
  */
-@Serializer(forClass = YearMonth::class)
-object IsoYearMonthSerializer : KSerializer<YearMonth> {
-  private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
-  override val descriptor: SerialDescriptor = StringDescriptor.withName("java.time.YearMonth")
-
+object IsoYearMonthSerializer
+  : AbstractJavaTimeSerializer<YearMonth>(ofPattern("yyy-MM")) {
   override fun deserialize(decoder: Decoder): YearMonth {
     return YearMonth.parse(decoder.decodeString(), formatter)
-  }
-
-  override fun serialize(encoder: Encoder, obj: YearMonth) {
-    encoder.encodeString(obj.format(formatter))
   }
 }

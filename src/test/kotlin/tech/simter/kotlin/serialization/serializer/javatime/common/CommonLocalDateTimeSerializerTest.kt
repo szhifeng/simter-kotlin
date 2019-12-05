@@ -13,10 +13,11 @@ import java.time.LocalDateTime
  * @author RJ
  */
 class CommonLocalDateTimeSerializerTest {
-  private val stableJson = Json(Stable)
+  private val json = Json(Stable.copy(encodeDefaults = false))
 
   @Serializable
   data class Bean(
+    val ps: List<@Serializable(with = CommonLocalDateTimeSerializer::class) LocalDateTime>,
     @Serializable(with = CommonLocalDateTimeSerializer::class)
     val p1: LocalDateTime,
     @Serializable(with = CommonLocalDateTimeSerializer::class)
@@ -27,13 +28,10 @@ class CommonLocalDateTimeSerializerTest {
 
   @Test
   fun test() {
-    val str = """{
-      "p1": "2019-12-01 10:20:30",
-      "p2": null
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(LocalDateTime.of(2019, 12, 1, 10, 20, 30))
-    assertThat(b.p2).isNull()
-    assertThat(b.p3).isNull()
+    val t = LocalDateTime.of(2019, 1, 31, 1, 20, 59)
+    val str = """{"ps":["2019-01-31 01:20:59"],"p1":"2019-01-31 01:20:59","p2":null}"""
+    val bean = Bean(ps = listOf(t), p1 = t, p2 = null)
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }

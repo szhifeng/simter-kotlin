@@ -1,5 +1,9 @@
 # simter-kotlin changelog
 
+## 1.4.0-M2 - 2019-12-05
+
+- Upgrade to simter-1.3.0-M9
+
 ## 1.4.0-M1 - 2019-12-03
 
 - Upgrade to simter-1.3.0-M8

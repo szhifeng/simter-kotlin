@@ -1,25 +1,18 @@
 package tech.simter.kotlin.serialization.serializer.javatime.iso
 
-import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
+import kotlinx.serialization.Decoder
+import kotlinx.serialization.KSerializer
+import tech.simter.kotlin.serialization.serializer.javatime.AbstractJavaTimeSerializer
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
 /**
- * A [LocalDateTime] [KSerializer] with ISO format 'yyyy-MM-ddTHH:mm:ss.SSS'.
+ * A [KSerializer] between [LocalDateTime] and string value with ISO format [ISO_LOCAL_DATE_TIME].
  *
  * @author RJ
  */
-@Serializer(forClass = LocalDateTime::class)
-object IsoLocalDateTimeSerializer : KSerializer<LocalDateTime> {
-  private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-  override val descriptor: SerialDescriptor = StringDescriptor.withName("java.time.LocalDateTime")
-
+object IsoLocalDateTimeSerializer : AbstractJavaTimeSerializer<LocalDateTime>(ISO_LOCAL_DATE_TIME) {
   override fun deserialize(decoder: Decoder): LocalDateTime {
     return LocalDateTime.parse(decoder.decodeString(), formatter)
-  }
-
-  override fun serialize(encoder: Encoder, obj: LocalDateTime) {
-    encoder.encodeString(obj.format(formatter))
   }
 }

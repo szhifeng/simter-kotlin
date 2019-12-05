@@ -13,10 +13,11 @@ import java.time.MonthDay
  * @author RJ
  */
 class IsoMonthDaySerializerTest {
-  private val stableJson = Json(Stable)
+  private val json = Json(Stable.copy(encodeDefaults = false))
 
   @Serializable
   data class Bean(
+    val ps: List<@Serializable(with = IsoMonthDaySerializer::class) MonthDay>,
     @Serializable(with = IsoMonthDaySerializer::class)
     val p1: MonthDay,
     @Serializable(with = IsoMonthDaySerializer::class)
@@ -27,13 +28,10 @@ class IsoMonthDaySerializerTest {
 
   @Test
   fun test() {
-    val str = """{
-      "p1": "12-01",
-      "p2": null
-    }"""
-    val b = stableJson.parse(Bean.serializer(), str)
-    assertThat(b.p1).isEqualTo(MonthDay.of(12, 1))
-    assertThat(b.p2).isNull()
-    assertThat(b.p3).isNull()
+    val md = MonthDay.of(1, 31)
+    val str = """{"ps":["01-31"],"p1":"01-31","p2":null}"""
+    val bean = Bean(ps = listOf(md), p1 = md, p2 = null)
+    assertThat(json.parse(Bean.serializer(), str)).isEqualTo(bean)
+    assertThat(json.stringify(Bean.serializer(), bean)).isEqualTo(str)
   }
 }
