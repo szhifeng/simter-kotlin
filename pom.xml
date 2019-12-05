@@ -8,7 +8,7 @@
     <relativePath/>
   </parent>
   <artifactId>simter-kotlin</artifactId>
-  <version>1.4.0-M1</version>
+  <version>1.4.0-M2</version>
   <packaging>jar</packaging>
   <name>simter-kotlin</name>
   <description>Simter kotlin extension</description>
