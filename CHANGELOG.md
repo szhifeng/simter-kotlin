@@ -1,5 +1,10 @@
 # simter-kotlin changelog
 
+## 1.4.0-M3 - 2020-01-08
+
+- Upgrade to simter-build-1.3.0-M11
+- Support nullable javatime
+
 ## 1.4.0-M2 - 2019-12-05
 
 - Upgrade to simter-1.3.0-M9
