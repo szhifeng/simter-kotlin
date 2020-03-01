@@ -1,5 +1,9 @@
 # simter-kotlin changelog
 
+## 1.4.0-M4 - 2020-03-01
+
+- Upgrade to simter-dependencies-1.3.0-M13
+
 ## 1.4.0-M3 - 2020-01-08
 
 - Upgrade to simter-build-1.3.0-M11
