@@ -1,7 +1,6 @@
 package tech.simter.kotlin.serialization.serializer.javatime
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
 import java.time.Month
 
 /**
@@ -10,13 +9,16 @@ import java.time.Month
  * @author RJ
  */
 object MonthSerializer : KSerializer<Month> {
-  override val descriptor: SerialDescriptor = StringDescriptor.withName(Month::class.qualifiedName!!)
+  override val descriptor: SerialDescriptor = PrimitiveDescriptor(
+    serialName = Month::class.qualifiedName!!,
+    kind = PrimitiveKind.STRING
+  )
 
   override fun deserialize(decoder: Decoder): Month {
     return Month.of(decoder.decodeInt())
   }
 
-  override fun serialize(encoder: Encoder, obj: Month) {
-    encoder.encodeInt(obj.value)
+  override fun serialize(encoder: Encoder, value: Month) {
+    encoder.encodeInt(value.value)
   }
 }

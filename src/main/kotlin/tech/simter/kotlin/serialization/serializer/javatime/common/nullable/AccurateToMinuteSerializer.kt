@@ -1,7 +1,6 @@
 package tech.simter.kotlin.serialization.serializer.javatime.common.nullable
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ofPattern
@@ -18,20 +17,23 @@ import java.time.temporal.Temporal
 object AccurateToMinuteSerializer : KSerializer<Temporal?> {
   private val dateTimeFormatter: DateTimeFormatter = ofPattern("yyyy-MM-dd HH:mm")
   private val timeFormatter: DateTimeFormatter = ofPattern("HH:mm")
-  override val descriptor: SerialDescriptor = StringDescriptor.withName("java.time.temporal.Temporal")
+  override val descriptor: SerialDescriptor = PrimitiveDescriptor(
+    serialName = "javatime.common.nullable.AccurateToMinuteSerializer",
+    kind = PrimitiveKind.STRING
+  )
 
-  override fun serialize(encoder: Encoder, obj: Temporal?) {
-    if (obj == null) encoder.encodeNull()
+  override fun serialize(encoder: Encoder, value: Temporal?) {
+    if (value == null) encoder.encodeNull()
     else {
-      val formatter = when (obj::class) {
+      val formatter = when (value::class) {
         LocalDateTime::class -> dateTimeFormatter
         OffsetDateTime::class -> dateTimeFormatter
         ZonedDateTime::class -> dateTimeFormatter
         LocalTime::class -> timeFormatter
         OffsetTime::class -> timeFormatter
-        else -> throw UnsupportedOperationException("Not support serialize type ${obj.javaClass.name}")
+        else -> throw UnsupportedOperationException("Not support serialize type ${value.javaClass.name}")
       }
-      encoder.encodeString(formatter.format(obj))
+      encoder.encodeString(formatter.format(value))
     }
   }
 

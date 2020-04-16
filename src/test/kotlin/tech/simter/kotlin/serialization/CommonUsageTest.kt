@@ -35,17 +35,17 @@ class CommonUsageTest {
     assertThat(b.p).isEqualTo("test")
 
     // 2. failed
-    // JsonDecodingException: Invalid JSON at 37: Encountered an unknown key no
+    // Unexpected JSON token at offset 45: Encountered an unknown key 'unknownKey'...
     str = """{
       "p": "test",
       "unknownKey": true
     }"""
     assertThatThrownBy { stableJson.parse(Bean1.serializer(), str) }
       .isInstanceOf(JsonDecodingException::class.java)
-      .hasMessageContaining("Encountered an unknown key unknownKey")
+      .hasMessageContaining("Encountered an unknown key 'unknownKey'")
 
     // 3. failed
-    // JsonDecodingException: Invalid JSON at 37: Encountered an unknown key no
+    // JsonDecodingException: Invalid JSON at 37: Encountered an unknown key ...
     str = """{
       "p": "test",
     }"""

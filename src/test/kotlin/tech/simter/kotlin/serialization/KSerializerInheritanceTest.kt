@@ -1,7 +1,6 @@
 package tech.simter.kotlin.serialization
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration.Companion.Stable
 import org.assertj.core.api.Assertions.assertThat
@@ -40,12 +39,16 @@ class KSerializerInheritanceTest {
 object IsoLocalDateSerializer : LocalDateSerializer(DateTimeFormatter.ISO_DATE)
 
 open class LocalDateSerializer(private val formatter: DateTimeFormatter) : KSerializer<LocalDate> {
-  override val descriptor: SerialDescriptor = StringDescriptor.withName("java.time.LocalDate")
+  override val descriptor: SerialDescriptor = PrimitiveDescriptor(
+    serialName = "java.time.LocalDate",
+    kind = PrimitiveKind.STRING
+  )
+
   override fun deserialize(decoder: Decoder): LocalDate {
     return LocalDate.parse(decoder.decodeString(), formatter)
   }
 
-  override fun serialize(encoder: Encoder, obj: LocalDate) {
-    encoder.encodeString(obj.format(formatter))
+  override fun serialize(encoder: Encoder, value: LocalDate) {
+    encoder.encodeString(value.format(formatter))
   }
 }

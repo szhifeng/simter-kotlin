@@ -1,7 +1,6 @@
 package tech.simter.kotlin.serialization.serializer.javatime
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringDescriptor
 import java.time.Year
 
 /**
@@ -10,13 +9,16 @@ import java.time.Year
  * @author RJ
  */
 object YearSerializer : KSerializer<Year> {
-  override val descriptor: SerialDescriptor = StringDescriptor.withName(Year::class.qualifiedName!!)
+  override val descriptor: SerialDescriptor = PrimitiveDescriptor(
+    serialName = Year::class.qualifiedName!!,
+    kind = PrimitiveKind.STRING
+  )
 
   override fun deserialize(decoder: Decoder): Year {
     return Year.of(decoder.decodeInt())
   }
 
-  override fun serialize(encoder: Encoder, obj: Year) {
-    encoder.encodeInt(obj.value)
+  override fun serialize(encoder: Encoder, value: Year) {
+    encoder.encodeInt(value.value)
   }
 }
