@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonConfiguration.Companion.Stable
 import kotlinx.serialization.json.JsonDecodingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 /**
@@ -119,5 +120,19 @@ class CommonUsageTest {
     assertThat(b.intNum).isEqualTo(123)
     assertThat(b.floatNum).isEqualTo(1.23f)
     assertThat(b.doubleNum).isEqualTo(1.23)
+  }
+
+  // 0.20.0 not serialize computed property
+  // issue to https://github.com/Kotlin/kotlinx.serialization/issues/805
+  @Test
+  @Disabled
+  fun testComputedProperty() {
+    @Serializable
+    data class Bean(val name: String) {
+      val computed: String
+        get() = "--$name"
+    }
+    assertThat(Json(Stable).stringify(Bean.serializer(), Bean(name = "rj")))
+      .isEqualTo("""{"name":"rj","computed":"--rj"}""")
   }
 }
