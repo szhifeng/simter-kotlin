@@ -1,5 +1,14 @@
 # simter-kotlin changelog
 
+## 1.4.0-M5 - 2020-04-16
+
+- Support a simple [Page] interface for common usage
+- Encapsulate a share kotlin json instance for common usage
+- Update custom serializer code after upgrade to `kotlinx-serialization-runtime-0.20.0` (with kotlin-1.3.70+)
+- Upgrade to simter-dependencies-1.3.0-M14
+
+[Page]: https://github.com/simter/simter-kotlin/blob/master/src/main/kotlin/tech/simter/kotlin/data/Page.kt
+
 ## 1.4.0-M4 - 2020-03-01
 
 - Upgrade to simter-dependencies-1.3.0-M13
